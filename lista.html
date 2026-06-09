@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Lista</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="voltar" id="btnVoltar">
+    ↩
+</div>
+
+<div class="page-grid">
+
+    <section class="lista-area">
+
+        <div class="titulo-lista">
+
+            <input
+            placeholder="Nome da Lista"
+            id="nomeLista">
+
+        </div>
+
+        <div class="novo-item">
+
+            <input
+            placeholder="Nome do item"
+            id="itemNome">
+
+            <input
+            placeholder="Qtd"
+            id="itemQtd">
+
+            <button id="addItem">
+                +
+            </button>
+
+        </div>
+
+        <div id="listaItens">
+
+        </div>
+
+    </section>
+
+    <section class="share-area">
+
+        <h2>
+            Compartilhar Lista
+        </h2>
+
+        <div class="share-form">
+
+            <input
+            placeholder="Email">
+
+            <button>
+                +
+            </button>
+
+        </div>
+
+        <div class="usuarios">
+
+        </div>
+
+    </section>
+
+</div>
+
+<div class="delete-list" id="btnApagarLista">
+    Apagar Lista 🗑
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
