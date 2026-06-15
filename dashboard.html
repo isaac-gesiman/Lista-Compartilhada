@@ -1,51 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Minhas Listas</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Listas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #f0f2f5; color: #333; }
+        .topbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .perfil { font-size: 24px; cursor: pointer; }
+        .actions { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .plus-btn { background: #007bff; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 18px; cursor: pointer; }
+        .plus-btn:hover { background: #0056b3; }
+        .listas-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
+        .lista-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-weight: bold; border-left: 5px solid #007bff; cursor: pointer; }
+    </style>
 </head>
-
 <body>
 
 <header class="topbar">
-
-    <div class="perfil">
-
-        👤
-
-    </div>
-
+    <div class="perfil">👤</div>
     <div class="actions">
-
         <span>Adicionar Lista</span>
-
-        <button class="plus-btn">
-            +
-        </button>
-
+        <button class="plus-btn">+</button>
     </div>
-
 </header>
 
 <main class="listas-container">
-
-    <div class="lista-card">
-        Lista de Compras
-    </div>
-
-    <div class="lista-card">
-        Lista de Tarefas
-    </div>
-
+    <div class="lista-card">Lista de Compras</div>
+    <div class="lista-card">Lista de Tarefas</div>
 </main>
 
-<script type="modulo" src="app.js"></script>
+<script type="module" src="app.js"></script>
 
 </body>
 </html>
