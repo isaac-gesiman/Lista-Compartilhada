@@ -4,7 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
+        
+        .login-container { width: 100%; max-width: 400px; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        h2 { font-size: 22px; margin-bottom: 20px; text-align: center; color: #111; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #555; }
+        
+        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 14px; }
+        input:focus { border-color: #007bff; }
+        
+        .login-btn { width: 100%; background: #007bff; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; margin-bottom: 10px; transition: background 0.2s; }
+        .login-btn:hover { background: #0056b3; }
+        
+        #btnCadastro { background: #28a745; }
+        #btnCadastro:hover { background: #218838; }
+        
+        hr { border: 0; border-top: 1px solid #ddd; margin: 20px 0; }
+        
+        .google-btn { width: 100%; background: white; color: #555; border: 1px solid #ddd; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
+        .google-btn:hover { background: #f8f9fa; }
+        
+        #mensagem { text-align: center; margin-top: 15px; font-size: 14px; font-weight: bold; }
+    </style>
 </head>
 
 <body>
@@ -21,12 +46,13 @@
         <input type="password" id="senha" placeholder="Digite sua senha">
 
         <button class="login-btn" id="btnLogin">Entrar</button>
-
         <button class="login-btn" id="btnCadastro">Criar Conta</button>
 
         <hr>
 
-        <button class="google-btn" id="btnGoogle">Login com Google</button>
+        <button class="google-btn" id="btnGoogle">
+            🌐 Login com Google
+        </button>
 
         <p id="mensagem"></p>
 
