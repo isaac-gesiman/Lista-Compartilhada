@@ -1,82 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background-color: #f0f2f5; color: #333; padding: 20px; }
-        
-        .voltar { font-size: 24px; cursor: pointer; display: inline-block; margin-bottom: 20px; width: 40px; height: 40px; background: white; border-radius: 50%; text-align: center; line-height: 40px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        
-        .page-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-        @media (max-width: 768px) { .page-grid { grid-template-columns: 1fr; } }
-        
-        section { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        
-        .titulo-lista input { width: 100%; font-size: 24px; font-weight: bold; border: none; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-bottom: 20px; outline: none; }
-        .titulo-lista input:focus { border-bottom-color: #007bff; }
-        
-        .novo-item { display: flex; gap: 10px; margin-bottom: 20px; }
-        .novo-item input[id="itemNome"] { flex: 3; }
-        .novo-item input[id="itemQtd"] { flex: 1; }
-        .novo-item input, .share-form input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; outline: none; }
-        .novo-item button, .share-form button { background: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        
-        #listaItens { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .item { display: flex; align-items: center; background: #f8f9fa; padding: 12px; border-radius: 6px; gap: 10px; border-left: 4px solid #007bff; }
-        .check { width: 20px; height: 20px; border: 2px solid #007bff; border-radius: 4px; cursor: pointer; }
-        .check.done { background: #007bff; position: relative; }
-        .check.done::after { content: '✓'; color: white; position: absolute; font-size: 14px; top: -2px; left: 3px; }
-        .delete { background: none; border: none; cursor: pointer; font-size: 16px; color: #dc3545; }
-        
-        .share-area h2 { font-size: 18px; margin-bottom: 15px; color: #555; }
-        .share-form { display: flex; gap: 10px; }
-        .share-form input { flex: 1; }
-        
-        .delete-list { background: #dc3545; color: white; text-align: center; padding: 12px; border-radius: 6px; margin-top: 20px; cursor: pointer; font-weight: bold; width: 100%; max-width: 200px; }
-        .delete-list:hover { background: #c82333; }
-    </style>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Edite itens da sua lista e compartilhe o acesso em tempo real na Lista Compartilhada."
+    />
+    <title>Visualizar Lista - Lista Compartilhada</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a href="dashboard.html" class="logo-brand" id="logoBrandLista"
+        >Lista Compartilhada</a
+      >
+      <div class="actions">
+        <div class="perfil" id="btnPerfilLista" title="Sair da conta">👤</div>
+      </div>
+    </header>
 
-<div class="voltar" id="btnVoltar">↩</div>
+    <main>
+      <div class="btn-voltar-container">
+        <button class="voltar" id="btnVoltar">
+          <span>←</span> Voltar ao Painel
+        </button>
+      </div>
 
-<div class="page-grid">
+      <div class="page-grid">
+        <!-- Área Principal da Lista -->
+        <section class="lista-area">
+          <div class="titulo-lista">
+            <input
+              placeholder="Sem título"
+              id="nomeLista"
+              aria-label="Nome da Lista"
+            />
+          </div>
 
-    <section class="lista-area">
-        <div class="titulo-lista">
-            <input placeholder="Nome da Lista" id="nomeLista">
-        </div>
+          <div class="novo-item">
+            <input
+              placeholder="Novo item..."
+              id="itemNome"
+              class="input-base"
+              aria-label="Nome do item"
+            />
+            <input
+              placeholder="Qtd"
+              id="itemQtd"
+              class="input-base"
+              aria-label="Quantidade do item"
+            />
+            <button id="addItem" aria-label="Adicionar item">+</button>
+          </div>
 
-        <div class="novo-item">
-            <input placeholder="Nome do item" id="itemNome">
-            <input placeholder="Qtd" id="itemQtd">
-            <button id="addItem">+</button>
-        </div>
+          <div id="listaItens">
+            <!-- Os itens serão gerados dinamicamente via app.js -->
+          </div>
+        </section>
 
-        <div id="listaItens">
-            </div>
-    </section>
+        <!-- Painel de Compartilhamento -->
+        <section class="share-area">
+          <h2>Compartilhar</h2>
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 15px;
+              line-height: 1.4;
+            "
+          >
+            Adicione o e-mail de outras pessoas para que elas possam ver e
+            editar esta lista.
+          </p>
+          <div class="share-form">
+            <input
+              type="email"
+              placeholder="e-mail@exemplo.com"
+              id="shareEmail"
+              class="input-base"
+              aria-label="E-mail para compartilhar"
+            />
+            <button id="btnShare" aria-label="Adicionar usuário">+</button>
+          </div>
+          <div class="usuarios" id="shareUsuariosList">
+            <!-- Usuários compartilhados serão renderizados dinamicamente -->
+          </div>
+        </section>
+      </div>
 
-    <section class="share-area">
-        <h2>Compartilhar Lista</h2>
-        <div class="share-form">
-            <input placeholder="Email" id="shareEmail">
-            <button id="btnShare">+</button>
-        </div>
-        <div class="usuarios">
-            </div>
-    </section>
+      <div class="delete-list-container">
+        <button class="delete-list" id="btnApagarLista">Apagar Lista 🗑</button>
+      </div>
+    </main>
 
-</div>
-
-<div class="delete-list" id="btnApagarLista">
-    Apagar Lista 🗑
-</div>
-
-<script type="module" src="app.js"></script>
-
-</body>
+    <script type="module" src="app.js"></script>
+  </body>
 </html>

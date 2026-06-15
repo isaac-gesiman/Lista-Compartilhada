@@ -1,193 +1,424 @@
-// ==========================================
-// 1. DASHBOARD
-// ==========================================
-function carregarListas() {
-    const container = document.querySelector(".listas-container");
-    if (!container) return;
+import { auth, db } from "./firebase.js";
+import {
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+import {
+  collection,
+  doc,
+  addDoc,
+  getDoc,
+  getDocs,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  serverTimestamp,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    container.innerHTML = "";
-    const listas = JSON.parse(localStorage.getItem("listas")) || [];
+// ==========================================
+// 0. PROTEÇÃO DE AUTENTICAÇÃO
+// ==========================================
+let currentUser = null;
 
-    listas.forEach(lista => {
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+  currentUser = user;
+  inicializarPagina();
+});
+
+// ==========================================
+// 0.1 LOGOUT
+// ==========================================
+const btnPerfil = document.getElementById("btnPerfil");
+const btnPerfilLista = document.getElementById("btnPerfilLista");
+
+function fazerLogout() {
+  if (!confirm("Deseja realmente sair da sua conta?")) return;
+  signOut(auth)
+    .then(() => {
+      window.location.href = "login.html";
+    })
+    .catch((error) => {
+      console.error("Erro ao fazer logout:", error);
+      alert("Ocorreu um erro ao tentar sair. Tente novamente.");
+    });
+}
+
+if (btnPerfil) btnPerfil.addEventListener("click", fazerLogout);
+if (btnPerfilLista) btnPerfilLista.addEventListener("click", fazerLogout);
+
+// ==========================================
+// 0.2 ROTEADOR DE INICIALIZAÇÃO
+// ==========================================
+function inicializarPagina() {
+  const nomeListaInput = document.getElementById("nomeLista");
+  const listasContainer = document.getElementById("listasContainer");
+
+  if (listasContainer) {
+    // Estamos no dashboard
+    carregarListas();
+  } else if (nomeListaInput) {
+    // Estamos na página de lista
+    const listaId = sessionStorage.getItem("listaAtual");
+    if (!listaId) {
+      // ID não encontrado → volta ao dashboard com segurança
+      window.location.href = "dashboard.html";
+      return;
+    }
+    carregarDetalhesLista(listaId);
+  }
+}
+
+// ==========================================
+// 1. DASHBOARD — CARREGAR LISTAS
+// ==========================================
+async function carregarListas() {
+  const container = document.getElementById("listasContainer");
+  if (!container) return;
+
+  container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary);">Carregando listas...</div>`;
+
+  try {
+    const q = query(
+      collection(db, "listas"),
+      where("dono", "==", currentUser.uid),
+    );
+
+    // Listener em tempo real
+    onSnapshot(q, (snapshot) => {
+      container.innerHTML = "";
+
+      if (snapshot.empty) {
+        container.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-secondary);">
+            <span style="font-size:48px;display:block;margin-bottom:12px;">📋</span>
+            <p style="font-weight:600;">Nenhuma lista criada ainda.</p>
+            <p style="font-size:14px;margin-top:4px;">Clique no botão "+" acima para criar sua primeira lista.</p>
+          </div>`;
+        return;
+      }
+
+      snapshot.forEach((docSnap) => {
+        const lista = { id: docSnap.id, ...docSnap.data() };
         const card = document.createElement("div");
-        card.className = "lista-card";
-        card.innerText = lista.nome;
+        card.className = "lista-card card-base";
+
+        const qtdItens = lista.itens ? lista.itens.length : 0;
+        const qtdConcluidos = lista.itens
+          ? lista.itens.filter((i) => i.concluido).length
+          : 0;
+
+        let infoTexto = "Nenhum item";
+        if (qtdItens > 0) {
+          infoTexto = qtdItens === 1 ? "1 item" : `${qtdItens} itens`;
+          if (qtdConcluidos > 0) {
+            infoTexto += ` (${qtdConcluidos} concluído${qtdConcluidos > 1 ? "s" : ""})`;
+          }
+        }
+
+        card.innerHTML = `
+          <div>${lista.nome || "Lista sem título"}</div>
+          <div class="lista-card-info"><span>📋</span> ${infoTexto}</div>`;
 
         card.addEventListener("click", () => {
-            localStorage.setItem("listaAtual", lista.id);
-            window.location.href = "lista.html";
+          sessionStorage.setItem("listaAtual", lista.id);
+          window.location.href = "lista.html";
         });
 
         container.appendChild(card);
+      });
     });
-}
-
-// Inicializa o dashboard se estiver na página correta
-carregarListas();
-
-// ==========================================
-// 2. CRIAR LISTA
-// ==========================================
-const plusBtn = document.querySelector(".plus-btn");
-
-if (plusBtn) {
-    plusBtn.addEventListener("click", () => {
-        const listas = JSON.parse(localStorage.getItem("listas")) || [];
-
-        const novaLista = {
-            id: Date.now().toString(),
-            nome: "Nova Lista",
-            itens: [],
-            compartilhados: []
-        };
-
-        listas.push(novaLista);
-        localStorage.setItem("listas", JSON.stringify(listas));
-        localStorage.setItem("listaAtual", novaLista.id);
-
-        window.location.href = "lista.html";
-    });
+  } catch (err) {
+    console.error("Erro ao carregar listas:", err);
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--color-danger);">Erro ao carregar listas. Tente recarregar a página.</div>`;
+  }
 }
 
 // ==========================================
-// 3. CARREGAR DETALHES DA LISTA ATUAL
+// 2. CRIAR NOVA LISTA
+// ==========================================
+const btnCriarLista = document.getElementById("btnCriarLista");
+const actionCriarLista = document.getElementById("actionCriarLista");
+
+async function criarNovaLista() {
+  if (!currentUser) return;
+
+  try {
+    const docRef = await addDoc(collection(db, "listas"), {
+      nome: "Nova Lista",
+      itens: [],
+      compartilhados: [],
+      dono: currentUser.uid,
+      criadoEm: serverTimestamp(),
+    });
+
+    sessionStorage.setItem("listaAtual", docRef.id);
+    window.location.href = "lista.html";
+  } catch (err) {
+    console.error("Erro ao criar lista:", err);
+    alert("Não foi possível criar a lista. Tente novamente.");
+  }
+}
+
+if (btnCriarLista) btnCriarLista.addEventListener("click", criarNovaLista);
+if (actionCriarLista) {
+  actionCriarLista.addEventListener("click", (e) => {
+    if (e.target !== btnCriarLista) criarNovaLista();
+  });
+}
+
+// ==========================================
+// 3. CARREGAR DETALHES DA LISTA
 // ==========================================
 const nomeListaInput = document.getElementById("nomeLista");
 const listaItens = document.getElementById("listaItens");
-const listaAtualId = localStorage.getItem("listaAtual");
 
-if (nomeListaInput && listaItens && listaAtualId) {
-    let listas = JSON.parse(localStorage.getItem("listas")) || [];
-    let lista = listas.find(l => l.id === listaAtualId);
+// Variável local para os dados da lista atual (evita re-fetch constante)
+let listaCache = null;
 
-    if (lista) {
-        nomeListaInput.value = lista.nome;
-        renderizarItens();
-    }
+async function carregarDetalhesLista(listaId) {
+  if (!nomeListaInput || !listaItens) return;
 
-    // Corrigido para garantir que a alteração do nome persista corretamente
-    nomeListaInput.addEventListener("input", () => {
-        if (lista) {
-            lista.nome = nomeListaInput.value;
-            salvar(lista);
-        }
+  try {
+    const docRef = doc(db, "listas", listaId);
+
+    // Listener em tempo real para a lista
+    onSnapshot(docRef, (docSnap) => {
+      if (!docSnap.exists()) {
+        alert("Esta lista não existe ou foi apagada.");
+        window.location.href = "dashboard.html";
+        return;
+      }
+
+      listaCache = { id: docSnap.id, ...docSnap.data() };
+
+      // Atualiza nome sem resetar o cursor do input
+      if (document.activeElement !== nomeListaInput) {
+        nomeListaInput.value = listaCache.nome || "";
+      }
+
+      renderizarItens(listaCache);
+      renderizarCompartilhados(listaCache);
     });
+
+    // Salvar nome ao digitar (com debounce)
+    let debounceNome;
+    nomeListaInput.addEventListener("input", () => {
+      clearTimeout(debounceNome);
+      debounceNome = setTimeout(async () => {
+        try {
+          await updateDoc(doc(db, "listas", listaId), {
+            nome: nomeListaInput.value,
+          });
+        } catch (err) {
+          console.error("Erro ao salvar nome:", err);
+        }
+      }, 600);
+    });
+  } catch (err) {
+    console.error("Erro ao carregar lista:", err);
+    alert("Erro ao carregar a lista.");
+    window.location.href = "dashboard.html";
+  }
 }
 
 // ==========================================
-// 4. ADICIONAR ITEM À LISTA
+// 4. ADICIONAR ITEM
 // ==========================================
 const addBtn = document.getElementById("addItem");
+const itemNomeInput = document.getElementById("itemNome");
+const itemQtdInput = document.getElementById("itemQtd");
 
-if (addBtn) {
-    addBtn.addEventListener("click", () => {
-        const nome = document.getElementById("itemNome").value.trim();
-        const qtd = document.getElementById("itemQtd").value.trim();
+async function adicionarItem() {
+  if (!itemNomeInput) return;
+  const nome = itemNomeInput.value.trim();
+  const qtd = itemQtdInput ? itemQtdInput.value.trim() : "";
+  if (!nome) return;
 
-        if (!nome) return;
+  const listaId = sessionStorage.getItem("listaAtual");
+  if (!listaId || !listaCache) return;
 
-        let listas = JSON.parse(localStorage.getItem("listas")) || [];
-        let lista = listas.find(l => l.id === listaAtualId);
+  const novosItens = [
+    ...(listaCache.itens || []),
+    { id: Date.now().toString(), nome, qtd, concluido: false },
+  ];
 
-        if (!lista) return;
+  try {
+    await updateDoc(doc(db, "listas", listaId), { itens: novosItens });
+    itemNomeInput.value = "";
+    if (itemQtdInput) itemQtdInput.value = "";
+    itemNomeInput.focus();
+  } catch (err) {
+    console.error("Erro ao adicionar item:", err);
+    alert("Não foi possível adicionar o item.");
+  }
+}
 
-        lista.itens.push({
-            id: Date.now(),
-            nome,
-            qtd,
-            concluido: false
-        });
-
-        localStorage.setItem("listas", JSON.stringify(listas));
-        renderizarItens();
-
-        // Limpa os campos de input
-        document.getElementById("itemNome").value = "";
-        document.getElementById("itemQtd").value = "";
-    });
+if (addBtn) addBtn.addEventListener("click", adicionarItem);
+if (itemNomeInput) {
+  itemNomeInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adicionarItem();
+  });
+}
+if (itemQtdInput) {
+  itemQtdInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adicionarItem();
+  });
 }
 
 // ==========================================
-// 5. RENDERIZAR ITENS DA LISTA
+// 5. RENDERIZAR ITENS
 // ==========================================
-function renderizarItens() {
-    if (!listaItens) return;
+function renderizarItens(lista) {
+  if (!listaItens) return;
 
-    let listas = JSON.parse(localStorage.getItem("listas")) || [];
-    let lista = listas.find(l => l.id === listaAtualId);
+  listaItens.innerHTML = "";
 
-    if (!lista) return;
+  if (!lista.itens || lista.itens.length === 0) {
+    listaItens.innerHTML = `
+      <div style="text-align:center;padding:30px;color:var(--text-secondary);border:1px dashed var(--color-border);border-radius:var(--radius-md);">
+        <p style="font-weight:500;font-size:14px;">Esta lista está vazia.</p>
+        <p style="font-size:12px;margin-top:2px;">Digite o nome do item acima para começar.</p>
+      </div>`;
+    return;
+  }
 
-    listaItens.innerHTML = "";
+  lista.itens.forEach((item) => {
+    const div = document.createElement("div");
+    div.className = `item ${item.concluido ? "done-item" : ""}`;
+    div.innerHTML = `
+      <div class="check ${item.concluido ? "done" : ""}" role="checkbox" aria-checked="${item.concluido}"></div>
+      <div class="item-text">${item.nome}</div>
+      ${item.qtd ? `<div class="item-qtd">${item.qtd}</div>` : ""}
+      <button class="delete" title="Excluir Item">🗑</button>`;
 
-    lista.itens.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "item";
-
-        div.innerHTML = `
-            <div class="check ${item.concluido ? "done" : ""}"></div>
-            <div style="flex:1;">${item.nome}</div>
-            <div>${item.qtd}</div>
-            <button class="delete">🗑</button>
-        `;
-
-        // Marcar/Desmarcar como concluído
-        div.querySelector(".check").addEventListener("click", () => {
-            item.concluido = !item.concluido;
-            localStorage.setItem("listas", JSON.stringify(listas));
-            renderizarItens();
-        });
-
-        // Apagar item específico
-        div.querySelector(".delete").addEventListener("click", () => {
-            lista.itens = lista.itens.filter(i => i.id !== item.id);
-            localStorage.setItem("listas", JSON.stringify(listas));
-            renderizarItens();
-        });
-
-        listaItens.appendChild(div);
+    div.querySelector(".check").addEventListener("click", async () => {
+      const listaId = sessionStorage.getItem("listaAtual");
+      const novosItens = lista.itens.map((i) =>
+        i.id === item.id ? { ...i, concluido: !i.concluido } : i,
+      );
+      await updateDoc(doc(db, "listas", listaId), { itens: novosItens });
     });
+
+    div.querySelector(".delete").addEventListener("click", async () => {
+      const listaId = sessionStorage.getItem("listaAtual");
+      const novosItens = lista.itens.filter((i) => i.id !== item.id);
+      await updateDoc(doc(db, "listas", listaId), { itens: novosItens });
+    });
+
+    listaItens.appendChild(div);
+  });
 }
 
 // ==========================================
-// 6. NAVEGAÇÃO / VOLTAR
+// 6. NAVEGAÇÃO — VOLTAR
 // ==========================================
 const btnVoltar = document.getElementById("btnVoltar");
-
 if (btnVoltar) {
-    btnVoltar.addEventListener("click", () => {
-        window.location.href = "dashboard.html";
-    });
+  btnVoltar.addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
 }
 
 // ==========================================
-// 7. APAGAR LISTA COMPLETA
+// 7. APAGAR LISTA
 // ==========================================
 const btnApagarLista = document.getElementById("btnApagarLista");
-
 if (btnApagarLista) {
-    btnApagarLista.addEventListener("click", () => {
-        if (!confirm("Deseja realmente apagar esta lista?")) return;
+  btnApagarLista.addEventListener("click", async () => {
+    if (!confirm("Deseja realmente apagar esta lista permanentemente?")) return;
 
-        let listas = JSON.parse(localStorage.getItem("listas")) || [];
-        listas = listas.filter(l => l.id !== listaAtualId);
+    const listaId = sessionStorage.getItem("listaAtual");
+    if (!listaId) return;
 
-        localStorage.setItem("listas", JSON.stringify(listas));
-        localStorage.removeItem("listaAtual");
-
-        window.location.href = "dashboard.html";
-    });
+    try {
+      await deleteDoc(doc(db, "listas", listaId));
+      sessionStorage.removeItem("listaAtual");
+      window.location.href = "dashboard.html";
+    } catch (err) {
+      console.error("Erro ao apagar lista:", err);
+      alert("Não foi possível apagar a lista.");
+    }
+  });
 }
 
 // ==========================================
-// 8. FUNÇÃO AUXILIAR: SALVAR ALTERAÇÕES
+// 8. COMPARTILHAMENTO
 // ==========================================
-function salvar(listaAtualizada) {
-    let listas = JSON.parse(localStorage.getItem("listas")) || [];
-    const index = listas.findIndex(l => l.id === listaAtualId);
+const btnShare = document.getElementById("btnShare");
+const shareEmailInput = document.getElementById("shareEmail");
+const shareUsuariosList = document.getElementById("shareUsuariosList");
 
-    if (index === -1) return;
+function renderizarCompartilhados(lista) {
+  if (!shareUsuariosList) return;
 
-    listas[index] = listaAtualizada;
-    localStorage.setItem("listas", JSON.stringify(listas));
+  shareUsuariosList.innerHTML = "";
+  const compartilhados = lista.compartilhados || [];
+
+  if (compartilhados.length === 0) {
+    shareUsuariosList.innerHTML = `
+      <div style="font-size:13px;color:var(--text-secondary);padding:8px 0;">
+        Nenhum e-mail adicionado para compartilhar.
+      </div>`;
+    return;
+  }
+
+  compartilhados.forEach((email) => {
+    const div = document.createElement("div");
+    div.className = "usuario-email";
+    div.innerHTML = `
+      <span>${email}</span>
+      <button class="delete" style="font-size:14px;" title="Remover Acesso">✕</button>`;
+
+    div.querySelector(".delete").addEventListener("click", async () => {
+      const listaId = sessionStorage.getItem("listaAtual");
+      const novos = compartilhados.filter((e) => e !== email);
+      await updateDoc(doc(db, "listas", listaId), { compartilhados: novos });
+    });
+
+    shareUsuariosList.appendChild(div);
+  });
+}
+
+if (btnShare && shareEmailInput) {
+  const adicionarCompartilhado = async () => {
+    const email = shareEmailInput.value.trim().toLowerCase();
+    if (!email) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert("Por favor, digite um e-mail válido.");
+      return;
+    }
+
+    const listaId = sessionStorage.getItem("listaAtual");
+    if (!listaId || !listaCache) return;
+
+    const compartilhados = listaCache.compartilhados || [];
+    if (compartilhados.includes(email)) {
+      alert("Esta lista já está compartilhada com este e-mail.");
+      return;
+    }
+
+    try {
+      await updateDoc(doc(db, "listas", listaId), {
+        compartilhados: [...compartilhados, email],
+      });
+      shareEmailInput.value = "";
+    } catch (err) {
+      console.error("Erro ao compartilhar:", err);
+      alert("Não foi possível adicionar o usuário.");
+    }
+  };
+
+  btnShare.addEventListener("click", adicionarCompartilhado);
+  shareEmailInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") adicionarCompartilhado();
+  });
 }

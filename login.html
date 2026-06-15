@@ -1,65 +1,101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
-        body { background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #333; }
-        
-        .login-container { width: 100%; max-width: 400px; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        
-        h2 { font-size: 22px; margin-bottom: 20px; text-align: center; color: #111; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; color: #555; }
-        
-        input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; outline: none; font-size: 14px; }
-        input:focus { border-color: #007bff; }
-        
-        .login-btn { width: 100%; background: #007bff; color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; margin-bottom: 10px; transition: background 0.2s; }
-        .login-btn:hover { background: #0056b3; }
-        
-        #btnCadastro { background: #28a745; }
-        #btnCadastro:hover { background: #218838; }
-        
-        hr { border: 0; border-top: 1px solid #ddd; margin: 20px 0; }
-        
-        .google-btn { width: 100%; background: white; color: #555; border: 1px solid #ddd; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: background 0.2s; }
-        .google-btn:hover { background: #f8f9fa; }
-        
-        #mensagem { text-align: center; margin-top: 15px; font-size: 14px; font-weight: bold; }
-    </style>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Acesse sua conta na Lista Compartilhada para gerenciar suas listas de compras e tarefas colaborativas em tempo real."
+    />
+    <title>Acessar Conta - Lista Compartilhada</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="login-container">
+      <article class="login-card">
+        <h2>Bem-vindo de volta</h2>
+        <p class="subtitle">
+          Insira suas credenciais para gerenciar suas listas
+        </p>
 
-<body>
+        <form id="loginForm" onsubmit="event.preventDefault()">
+          <div class="login-form-group">
+            <label for="email">E-mail</label>
+            <input
+              type="email"
+              id="email"
+              class="input-base"
+              placeholder="exemplo@email.com"
+              autocomplete="email"
+              required
+            />
+          </div>
 
-<div class="login-container">
-    <div class="login-card">
+          <div class="login-form-group">
+            <label for="senha">Senha</label>
+            <input
+              type="password"
+              id="senha"
+              class="input-base"
+              placeholder="Digite sua senha"
+              autocomplete="current-password"
+              required
+            />
+          </div>
 
-        <h2>Crie sua conta e faça o login</h2>
+          <div class="login-actions">
+            <button
+              type="submit"
+              class="btn-primary-base login-btn"
+              id="btnLogin"
+            >
+              Entrar
+            </button>
+            <button
+              type="button"
+              class="btn-primary-base login-btn"
+              id="btnCadastro"
+            >
+              Criar Nova Conta
+            </button>
+          </div>
+        </form>
 
-        <label>Email</label>
-        <input type="email" id="email" placeholder="Digite seu email">
+        <hr />
 
-        <label>Senha</label>
-        <input type="password" id="senha" placeholder="Digite sua senha">
-
-        <button class="login-btn" id="btnLogin">Entrar</button>
-        <button class="login-btn" id="btnCadastro">Criar Conta</button>
-
-        <hr>
-
-        <button class="google-btn" id="btnGoogle">
-            🌐 Login com Google
+        <button class="google-btn" id="btnGoogle" type="button">
+          <!-- SVG minimalista para a logo do Google -->
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M17.64 9.20455C17.64 8.56636 17.5827 7.95273 17.4764 7.36364H9V10.845H13.8436C13.635 11.97 13.0009 12.9232 12.0477 13.5614V15.8195H14.9564C16.6582 14.2527 17.64 11.9455 17.64 9.20455Z"
+              fill="#4285F4"
+            />
+            <path
+              d="M9 18C11.43 18 13.4673 17.1941 14.9577 15.8195L12.0491 13.5614C11.2418 14.1027 10.2109 14.4273 9 14.4273C6.65591 14.4273 4.67182 12.8414 3.96409 10.71H0.957275V13.0418C2.43818 15.9832 5.48182 18 9 18Z"
+              fill="#34A853"
+            />
+            <path
+              d="M4.96409 10.71C4.78409 10.17 4.68182 9.59727 4.68182 9C4.68182 8.40273 4.78409 7.83 4.96409 7.29V4.95818H1.95727C1.34591 6.17318 1 7.54773 1 9C1 10.4523 1.34591 11.8268 1.95727 13.0418L4.96409 10.71Z"
+              fill="#FBBC05"
+            />
+            <path
+              d="M9 3.57273C10.3214 3.57273 11.5077 4.02545 12.4405 4.91727L15.0218 2.33591C13.4632 0.887727 11.4259 0 9 0C5.48182 0 2.43818 2.01682 0.957275 4.95818L3.96409 7.29C4.67182 5.15864 6.65591 3.57273 9 3.57273Z"
+              fill="#EA4335"
+            />
+          </svg>
+          Entrar com o Google
         </button>
 
         <p id="mensagem"></p>
+      </article>
+    </main>
 
-    </div>
-</div>
-
-<script type="module" src="login.js"></script>
-
-</body>
+    <script type="module" src="login.js"></script>
+  </body>
 </html>
