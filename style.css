@@ -332,3 +332,73 @@
     text-align: center;
     padding: 30px;
 }
+
+/* Botão de voltar maior */
+.voltar{
+   position: absolute;
+
+   top: 15px;
+   left: 15px;
+
+   width: 45px;
+   height: 45px;
+
+   display:flex;
+   align-items:center;
+   justify-content:center;
+
+   font-size:30px;
+   font-weight:bold;
+
+   color:white;
+   cursor:pointer;
+
+   z-index:999;
+}
+
+/* Área de compartilhar */
+.share-area {
+   background: #5874ff;
+   min-height: 400px;
+}
+
+.share-area h2 {
+   background: #2d0a75;
+   padding: 30px;
+   text-align: center;
+   font-size: 28px;
+}
+
+.share-description {
+   margin-left: 12px;
+   margin-right: 12px;
+
+   padding-top: 15px;
+
+   font-size: 18px;
+   line-height: 1.5;
+}
+
+.share-form {
+   display: flex;
+   padding: 20px 10px;
+   gap: 5px;
+}
+
+.share-form input {
+   flex: 1;
+   padding: 15px;
+   border-radius: 30px;
+   border: none;
+   font-size: 16px;
+}
+
+.share-form button {
+   width: 35px;
+   font-size: 20px;
+   cursor: pointer;
+}
+
+.colaborador{
+   margin-left: 15px;
+}
