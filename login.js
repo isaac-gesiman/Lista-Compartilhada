@@ -7,18 +7,31 @@ import {
 
 import {
     createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signInWithRedirect,
-    getRedirectResult,
-    GoogleAuthProvider,
-    onAuthStateChanged
+    signInWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+console.log("login.js carregou");
 
 const emailInput = document.getElementById("email");
 const senhaInput = document.getElementById("senha");
 const btnLogin = document.getElementById("btnLogin");
 const btnCadastro = document.getElementById("btnCadastro");
-const btnGoogle = document.getElementById("btnGoogle");
+const mensagem = document.getElementById("mensagem");
+
+function mostrarMensagem(texto) {
+    if (mensagem) {
+        mensagem.textContent = texto;
+    }
+}
+
+function bloquearBotoes(bloquear) {
+    if (btnLogin) btnLogin.disabled = bloquear;
+    if (btnCadastro) btnCadastro.disabled = bloquear;
+}
+
+function irParaDashboard() {
+    window.location.href = "dashboard.html";
+}
 
 async function salvarUsuario(user) {
     await setDoc(
@@ -33,42 +46,70 @@ async function salvarUsuario(user) {
 }
 
 function mostrarErro(error) {
-    console.error(error);
+    console.error("ERRO COMPLETO:", error);
+    console.error("CÓDIGO:", error.code);
+    console.error("MENSAGEM:", error.message);
+
+    mostrarMensagem("");
+    bloquearBotoes(false);
+
+    if (error.code === "auth/invalid-email") {
+        alert("Email inválido. Verifique se digitou corretamente.");
+        return;
+    }
+
+    if (error.code === "auth/missing-password") {
+        alert("Digite uma senha.");
+        return;
+    }
+
+    if (error.code === "auth/weak-password") {
+        alert("A senha precisa ter pelo menos 6 caracteres.");
+        return;
+    }
+
+    if (error.code === "auth/email-already-in-use") {
+        alert("Esse email já está cadastrado. Clique em Entrar.");
+        return;
+    }
+
+    if (error.code === "auth/invalid-credential") {
+        alert("Email ou senha incorretos.");
+        return;
+    }
+
+    if (error.code === "auth/user-not-found") {
+        alert("Essa conta ainda não existe. Clique em Criar Conta.");
+        return;
+    }
+
+    if (error.code === "auth/wrong-password") {
+        alert("Senha incorreta.");
+        return;
+    }
+
     alert("Erro: " + error.code);
 }
-
-/* Trata retorno do Google */
-getRedirectResult(auth)
-    .then(async (result) => {
-        if (result && result.user) {
-            await salvarUsuario(result.user);
-            sessionStorage.removeItem("loginGooglePendente");
-            window.location.replace("dashboard.html");
-        }
-    })
-    .catch((error) => {
-        mostrarErro(error);
-    });
-
-/* Só redireciona automático se veio do Google */
-onAuthStateChanged(auth, async (user) => {
-    const loginGooglePendente = sessionStorage.getItem("loginGooglePendente");
-
-    if (user && loginGooglePendente === "sim") {
-        await salvarUsuario(user);
-        sessionStorage.removeItem("loginGooglePendente");
-        window.location.replace("dashboard.html");
-    }
-});
 
 btnLogin.addEventListener("click", async () => {
     const email = emailInput.value.trim().toLowerCase();
     const senha = senhaInput.value.trim();
 
+    if (!email || !senha) {
+        alert("Digite o email e a senha.");
+        return;
+    }
+
     try {
+        bloquearBotoes(true);
+        mostrarMensagem("Entrando...");
+
         const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+
         await salvarUsuario(userCredential.user);
-        window.location.replace("dashboard.html");
+
+        irParaDashboard();
+
     } catch (error) {
         mostrarErro(error);
     }
@@ -78,26 +119,27 @@ btnCadastro.addEventListener("click", async () => {
     const email = emailInput.value.trim().toLowerCase();
     const senha = senhaInput.value.trim();
 
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-        await salvarUsuario(userCredential.user);
-        window.location.replace("dashboard.html");
-    } catch (error) {
-        mostrarErro(error);
+    if (!email || !senha) {
+        alert("Digite o email e a senha.");
+        return;
     }
-});
 
-btnGoogle.addEventListener("click", async () => {
+    if (senha.length < 6) {
+        alert("A senha precisa ter pelo menos 6 caracteres.");
+        return;
+    }
+
     try {
-        const provider = new GoogleAuthProvider();
+        bloquearBotoes(true);
+        mostrarMensagem("Criando conta...");
 
-        provider.setCustomParameters({
-            prompt: "select_account"
-        });
+        const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
 
-        sessionStorage.setItem("loginGooglePendente", "sim");
+        await salvarUsuario(userCredential.user);
 
-        await signInWithRedirect(auth, provider);
+        alert("Conta criada com sucesso!");
+
+        irParaDashboard();
 
     } catch (error) {
         mostrarErro(error);

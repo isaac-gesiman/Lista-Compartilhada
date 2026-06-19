@@ -11,6 +11,7 @@ const firebaseConfig = {
     storageBucket: "lista-compartilhada-1ebd7.firebasestorage.app",
     messagingSenderId: "1072895865640",
     appId: "1:1072895865640:web:eb106eac0e268247f6561d"
+   
 };
 
 const app = initializeApp(firebaseConfig);
